@@ -1,0 +1,25 @@
+.hola{
+       color: brown;
+       font-size: 60px;
+       text-shadow: 25px;
+       text-decoration: underline;
+}
+
+p strong{
+    color: black;
+    font-size: 20px;
+    text-decoration: underline;
+}
+
+p a {
+    color: brown;
+    font-size: 20px;
+    text-decoration: underline;
+}
+
+
+h2 strong{
+    color: brown;
+    font-size: 35px;
+    text-decoration: underline;
+}
