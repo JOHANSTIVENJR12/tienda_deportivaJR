@@ -55,3 +55,27 @@ function asignarFrutas() {
 };
 
  asignarFrutas();
+
+ // Obtener elementos del DOM
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const messageText = document.getElementById("message");
+const submitButton = document.getElementById("submitButton");
+
+
+// Cuando el usuario hace clic en el campo email
+emailInput.addEventListener("focus", function () {
+    phoneInput.disabled = false;
+    messageText.disabled = false;
+});
+
+
+// Cuando escribe en el campo email
+emailInput.addEventListener("input", function () {
+
+    if (emailInput.value.trim() !== "") {
+        submitButton.disabled = false;
+    } else {
+        submitButton.disabled = true;
+    }
+});

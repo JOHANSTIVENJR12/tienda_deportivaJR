@@ -1,25 +1,70 @@
-.hola{
-       color: brown;
-       font-size: 60px;
-       text-shadow: 25px;
-       text-decoration: underline;
+body{
+    background:#f8f9fa;
 }
 
-p strong{
-    color: black;
-    font-size: 20px;
-    text-decoration: underline;
+.carousel{
+    background:white;
 }
 
-p a {
-    color: brown;
-    font-size: 20px;
-    text-decoration: underline;
+.carousel img{
+    width:100%;
+    max-height:420px;
+    object-fit:contain;
+}
+footer a{
+    text-decoration:none;
 }
 
+footer a:hover{
+    text-decoration:underline;
+}
+.card{
+    transition:0.3s;
+    border:none;
+}
 
-h2 strong{
-    color: brown;
-    font-size: 35px;
-    text-decoration: underline;
+.card:hover{
+    transform:translateY(-8px);
+}
+
+.card img{
+    height:250px;
+    object-fit:contain;
+    padding:20px;
+    background:white;
+}
+
+.card-title{
+    color:brown;
+    font-weight:bold;
+}
+
+.btn-primary{
+    background:brown;
+    border:none;
+}
+
+.btn-primary:hover{
+    background:#8B0000;
+}
+.accordion-button{
+    font-weight:bold;
+}
+
+footer{
+    margin-top:60px;
+}
+
+footer h4{
+    color:#ffffff;
+    margin-bottom:15px;
+}
+
+footer p,
+footer li{
+    color:#d6d6d6;
+}
+
+footer a:hover{
+    color:#ffc107 !important;
 }
