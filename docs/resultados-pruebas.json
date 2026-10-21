@@ -1,0 +1,30 @@
+{
+  "fecha": "2026-10-21T10:01:29.236Z",
+  "entorno": "PHP 8.2.12 / MariaDB 10.4.32 / Chrome headless",
+  "checks": [
+    "Mi Cuenta redirige al login sin sesión",
+    "Se rechaza un POST sin CSRF",
+    "Registro correcto redirige al login",
+    "Se rechaza el correo duplicado",
+    "Login incorrecto no abre sesión",
+    "Login correcto abre Mi Cuenta",
+    "El login regenera el identificador de sesión",
+    "Ana ve su dirección y su pedido, sin los de Bruno",
+    "Se guarda una nueva dirección principal",
+    "Checkout autocompleta la nueva entrega principal",
+    "Compra autenticada confirma el pedido",
+    "Reenviar el checkout con el carrito vacío no repite la compra",
+    "La compra aparece en el historial",
+    "Los datos de direcciones se escapan frente a XSS",
+    "Logout bloquea de nuevo Mi Cuenta",
+    "Bruno solo ve su historial y sus direcciones",
+    "Checkout invitado: nombre vacío",
+    "Checkout invitado: email vacío",
+    "Checkout invitado: calle vacío",
+    "Checkout invitado: ciudad vacío",
+    "Checkout invitado: cp vacío",
+    "El invitado puede completar un pedido",
+    "Catálogo móvil sin desbordamiento horizontal",
+    "No se han detectado respuestas 500"
+  ]
+}

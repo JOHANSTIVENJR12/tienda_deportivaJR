@@ -1,0 +1,5 @@
+tabla	filas
+usuarios	2
+direcciones	3
+pedidos	3
+pedido_lineas	4
