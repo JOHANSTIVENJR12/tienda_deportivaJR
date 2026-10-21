@@ -1,0 +1,90 @@
+// Ejecutar contra una BD de prueba importada: npm install --no-save playwright
+// BASE_URL=http://127.0.0.1:8085 node tests/e2e.cjs
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const base = process.env.BASE_URL || 'http://127.0.0.1:8085';
+const shots = path.resolve(__dirname, '../docs/capturas');
+fs.mkdirSync(shots, {recursive:true});
+const results = [];
+function ok(name, condition) { assert.ok(condition, name); results.push(name); console.log('OK: ' + name); }
+async function screenshot(page, name) { await page.screenshot({path:path.join(shots,name+'.png'),fullPage:true}); }
+(async () => {
+  const browser = await chromium.launch({channel:process.env.BROWSER_CHANNEL || 'chrome',headless:true});
+  const context = await browser.newContext({viewport:{width:1365,height:950}});
+  const page = await context.newPage();
+  const serverErrors = [];
+  page.on('response', r => {if (r.status() >= 500) serverErrors.push(r.url());});
+  await page.goto(base+'/mi-cuenta.php');
+  ok('Mi Cuenta redirige al login sin sesión',page.url().endsWith('/login.php'));
+  await screenshot(page,'01-acceso-protegido');
+  const rejected = await context.request.post(base+'/registro.php',{form:{nombre:'Sin token'}});
+  ok('Se rechaza un POST sin CSRF',rejected.status()===403);
+  await page.goto(base+'/registro.php');
+  await screenshot(page,'02-registro');
+  const email = 'prueba.'+Date.now()+'@example.com';
+  async function register(mail) {
+    await page.goto(base+'/registro.php');
+    await page.locator('#nombre').fill('Prueba de integración'); await page.locator('#email').fill(mail);
+    await page.locator('#password').fill('DemoJR2026!'); await page.locator('#confirmacion').fill('DemoJR2026!');
+    await page.getByRole('button',{name:'Crear cuenta',exact:true}).click();
+  }
+  await register(email);
+  ok('Registro correcto redirige al login', page.url().endsWith('/login.php'));
+  await screenshot(page,'03-registro-correcto');
+  await register(email);
+  ok('Se rechaza el correo duplicado', await page.getByRole('alert').innerText().then(t=>t.includes('ya tiene una cuenta')));
+  await page.goto(base+'/login.php');
+  await page.locator('#email').fill('ana@example.com'); await page.locator('#password').fill('incorrecta');
+  await page.getByRole('button',{name:'Entrar',exact:true}).click();
+  ok('Login incorrecto no abre sesión',page.url().endsWith('/login.php') && await page.getByRole('alert').count()===1);
+  await screenshot(page,'04-login-incorrecto');
+  const oldCookie = (await context.cookies()).find(c=>c.name==='PHPSESSID').value;
+  await page.locator('#password').fill('DemoJR2026!'); await page.getByRole('button',{name:'Entrar',exact:true}).click();
+  ok('Login correcto abre Mi Cuenta',page.url().endsWith('/mi-cuenta.php'));
+  ok('El login regenera el identificador de sesión',(await context.cookies()).find(c=>c.name==='PHPSESSID').value!==oldCookie);
+  let text = await page.locator('main').innerText();
+  ok('Ana ve su dirección y su pedido, sin los de Bruno',text.includes('Calle Ejemplo 10') && text.includes('#1') && !text.includes('Calle Otra Cuenta') && !text.includes('#2'));
+  await screenshot(page,'05-mi-cuenta');
+  await page.locator('#calle').fill('Calle Ensayo 22'); await page.locator('#ciudad').fill('Madrid'); await page.locator('#cp').fill('28003');
+  await page.locator('#principal').check(); await page.getByRole('button',{name:'Guardar dirección'}).click();
+  ok('Se guarda una nueva dirección principal',(await page.locator('main').innerText()).includes('Calle Ensayo 22'));
+  await page.goto(base+'/index.php'); await screenshot(page,'06-catalogo');
+  await page.getByRole('button',{name:'Añadir al carrito'}).first().click();
+  await page.goto(base+'/checkout.php');
+  ok('Checkout autocompleta la nueva entrega principal',(await page.locator('#calle').inputValue())==='Calle Ensayo 22');
+  await screenshot(page,'07-checkout-registrado');
+  const token = await page.locator('[name=checkout_token]').inputValue();
+  const csrf = await page.locator('[name=csrf]').first().inputValue();
+  await page.getByRole('button',{name:'Confirmar pedido de demostración'}).click();
+  ok('Compra autenticada confirma el pedido',page.url().endsWith('/pedido-confirmado.php'));
+  await screenshot(page,'08-pedido-confirmado');
+  const replay = await context.request.post(base+'/checkout.php',{form:{csrf,checkout_token:token,nombre:'Ana Demo',email:'ana@example.com',calle:'Calle Ensayo 22',ciudad:'Madrid',cp:'28003'}});
+  ok('Reenviar el checkout con el carrito vacío no repite la compra',replay.url().endsWith('/carrito.php'));
+  await page.goto(base+'/mi-cuenta.php');
+  ok('La compra aparece en el historial',(await page.locator('tbody tr').count())===2);
+  // El dato peligroso se almacena como texto y se escapa al mostrarlo.
+  await page.locator('#calle').fill('<script>window.XSS=1</script>'); await page.locator('#ciudad').fill('Prueba'); await page.locator('#cp').fill('28001'); await page.locator('#tipo').selectOption('facturación');
+  await page.getByRole('button',{name:'Guardar dirección'}).click();
+  ok('Los datos de direcciones se escapan frente a XSS',await page.evaluate(()=>window.XSS===undefined));
+  await page.getByRole('button',{name:'Cerrar sesión'}).click();
+  await page.goto(base+'/mi-cuenta.php'); ok('Logout bloquea de nuevo Mi Cuenta',page.url().endsWith('/login.php'));
+  await page.locator('#email').fill('bruno@example.com'); await page.locator('#password').fill('DemoJR2026!'); await page.getByRole('button',{name:'Entrar',exact:true}).click();
+  text = await page.locator('main').innerText();
+  ok('Bruno solo ve su historial y sus direcciones',text.includes('Calle Otra Cuenta') && text.includes('#2') && !text.includes('Calle Ensayo') && !text.includes('#1'));
+  await page.getByRole('button',{name:'Cerrar sesión'}).click();
+  await page.goto(base+'/index.php'); await page.getByRole('button',{name:'Añadir al carrito'}).last().click();
+  await page.goto(base+'/checkout.php');
+  for(const id of ['nombre','email','calle','ciudad','cp']) ok('Checkout invitado: '+id+' vacío',await page.locator('#'+id).inputValue()==='');
+  await screenshot(page,'09-checkout-invitado');
+  for(const [id,value] of Object.entries({nombre:'Invitado prueba',email:'invitado.prueba@example.com',calle:'Calle Invitado 3',ciudad:'Sevilla',cp:'41001'})) await page.locator('#'+id).fill(value);
+  await page.getByRole('button',{name:'Confirmar pedido de demostración'}).click();
+  ok('El invitado puede completar un pedido',page.url().endsWith('/pedido-confirmado.php'));
+  await page.setViewportSize({width:390,height:844}); await page.goto(base+'/index.php');
+  ok('Catálogo móvil sin desbordamiento horizontal',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await screenshot(page,'10-movil');
+  ok('No se han detectado respuestas 500',serverErrors.length===0);
+  fs.writeFileSync(path.resolve(__dirname,'../docs/resultados-pruebas.json'),JSON.stringify({fecha:new Date().toISOString(),entorno:'PHP 8.2.12 / MariaDB 10.4.32 / Chrome headless',checks:results},null,2));
+  await browser.close();
+})().catch(error=>{console.error(error);process.exit(1);});
