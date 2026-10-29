@@ -1,0 +1,12 @@
+OK: Contraseña de prueba verificable mediante hash
+OK: No hay contraseña de prueba en texto plano
+OK: Contraseña de prueba verificable mediante hash
+OK: No hay contraseña de prueba en texto plano
+OK: Contraseña de prueba verificable mediante hash
+OK: No hay contraseña de prueba en texto plano
+OK: Pedido nuevo de invitado con usuario_id NULL
+OK: Pedido nuevo vinculado a Ana
+OK: El reenvío no duplica pedidos
+OK: Una dirección principal por usuario y tipo
+OK: Totales coherentes con las líneas del pedido
+OK: Tres claves foráneas creadas

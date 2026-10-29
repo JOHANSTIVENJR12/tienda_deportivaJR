@@ -1,0 +1,14 @@
+body { color:#20242b; min-height:100vh; display:flex; flex-direction:column; }
+main { flex:1; }
+.navbar a { color:#fff; text-decoration:none; }
+.navbar a:hover { text-decoration:underline; }
+.navbar form { margin:0; }
+.hero { background:#eef0f3; border-left:6px solid brown; border-radius:12px; padding:2.5rem; margin-bottom:2rem; }
+.eyebrow { color:brown; text-transform:uppercase; letter-spacing:.12em; font-size:.8rem; font-weight:700; }
+.auth { max-width:540px; margin:1rem auto; }
+.panel { background:white; border:1px solid #e1e4e8; border-radius:12px; padding:1.5rem; margin-bottom:1.5rem; }
+.card:hover { transform:none; }
+.card-title { font-size:1.1rem; }
+footer p { color:inherit; }
+.order-line { border-bottom:1px solid #eee; padding:.6rem 0; }
+button, a, input, select { touch-action:manipulation; }

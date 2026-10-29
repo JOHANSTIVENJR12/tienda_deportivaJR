@@ -1,0 +1,7 @@
+config/local.php
+.env
+*.log
+work/
+.vscode/
+node_modules/
+package-lock.json
